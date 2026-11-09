@@ -103,11 +103,11 @@ jobs:
           mkdir -p build
           godot --headless --import || true
           set +e
-          godot --headless --verbose --export-debug "Android" build/lahore-driving-sim.apk > build/log.txt 2>&1
+          godot --headless --export-debug "Android" build/lahore-driving-sim.apk > build/log.txt 2>&1
           CODE=$?
           echo "===== EXIT CODE: $CODE ====="
-          echo "===== KEY LINES ====="
-          grep -n -i -E "error|invalid|missing|required|could not|not found|should|only" build/log.txt | tail -n 40
+          echo "===== FULL LOG ====="
+          cat -A build/log.txt | sed 's/\$$//' | tail -n 40
           ls -la build
           exit $CODE
 
