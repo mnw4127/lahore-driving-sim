@@ -58,7 +58,6 @@ jobs:
             JAVA_SDK=$(ls -d /usr/lib/jvm/*/ | head -n 1)
           fi
           echo "Java SDK: $JAVA_SDK"
-          ls "$JAVA_SDK/bin" | head -n 20
           for f in ~/.config/godot/editor_settings-4*.tres; do
             sed -i '/java_sdk_path/d' "$f"
             echo "" >> "$f"
@@ -82,6 +81,8 @@ jobs:
           [preset.0.options]
 
           gradle_build/use_gradle_build=false
+          gradle_build/min_sdk="21"
+          gradle_build/target_sdk="33"
           architectures/armeabi-v7a=false
           architectures/arm64-v8a=true
           architectures/x86=false
@@ -96,9 +97,18 @@ jobs:
 
       - name: Build APK
         run: |
+          echo "===== SDK PLATFORMS ====="
+          ls /usr/lib/android-sdk/platforms /usr/lib/android-sdk/build-tools || true
           mkdir -p build
           godot --headless --import || true
-          godot --headless --export-debug "Android" build/lahore-driving-sim.apk
+          set +e
+          godot --headless --verbose --export-debug "Android" build/lahore-driving-sim.apk > build/log.txt 2>&1
+          CODE=$?
+          echo "===== EXIT CODE: $CODE ====="
+          echo "===== KEY LINES ====="
+          grep -n -i -E "error|invalid|missing|required|could not|not found|platform|sdk" build/log.txt | tail -n 40
+          ls -la build
+          exit $CODE
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
